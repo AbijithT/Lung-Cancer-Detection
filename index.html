@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lung Cancer Detection</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #0f4c75, #2a5298, #4facfe);
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.05)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.03)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+      pointer-events: none;
+    }
+    header {
+      text-align: center;
+      padding: 20px;
+      margin-bottom: 20px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      position: relative;
+      z-index: 1;
+    }
+    header i {
+      font-size: 40px;
+      color: #4facfe;
+      margin-bottom: 10px;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: bold;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 90%;
+      max-width: 450px;
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 40px 30px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      position: relative;
+      z-index: 1;
+      transition: transform 0.3s ease;
+    }
+    .container:hover {
+      transform: translateY(-5px);
+    }
+    .upload-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border: 2px dashed #4facfe;
+      border-radius: 15px;
+      padding: 40px 20px;
+      cursor: pointer;
+      margin-bottom: 25px;
+      transition: all 0.3s ease;
+      background: rgba(79, 172, 254, 0.1);
+      width: 100%;
+    }
+    .upload-box:hover {
+      border-color: #fff;
+      background: rgba(255,255,255,0.15);
+      transform: scale(1.02);
+    }
+    .upload-box i {
+      font-size: 50px;
+      color: #4facfe;
+      margin-bottom: 15px;
+    }
+    .upload-box span {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    input[type="file"] { display: none; }
+    .btn {
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
+      color: #fff;
+      border: none;
+      padding: 15px 30px;
+      font-size: 16px;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn:hover { 
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(79, 172, 254, 0.6);
+    }
+    .btn i {
+      font-size: 18px;
+    }
+    #preview { 
+      margin-top: 20px; 
+      max-width: 100%; 
+      border-radius: 15px; 
+      border: 3px solid #4facfe;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      transition: transform 0.3s ease;
+    }
+    #preview:hover {
+      transform: scale(1.02);
+    }
+    #result { 
+      margin-top: 30px; 
+      font-size: 20px; 
+      font-weight: bold; 
+      padding: 15px;
+      border-radius: 10px;
+      background: rgba(0,0,0,0.2);
+      min-height: 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .spinner {
+      border: 4px solid rgba(255,255,255,0.3);
+      border-top: 4px solid #4facfe;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 20px 0;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @media (max-width: 600px) {
+      .container {
+        width: 95%;
+        padding: 30px 20px;
+      }
+      header h1 {
+        font-size: 24px;
+      }
+      .upload-box {
+        padding: 30px 15px;
+      }
+      .upload-box i {
+        font-size: 40px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <i class="fas fa-lungs"></i>
+    <h1>Lung Cancer Detection System</h1>
+  </header>
+  <div class="container">
+    <label class="upload-box">
+      <i class="fas fa-cloud-upload-alt"></i>
+      <input type="file" id="imageUpload" accept="image/*">
+      <span>Click or Drag & Drop to Upload CT/X-ray</span>
+    </label>
+
+    <button class="btn" onclick="predict()">
+      <i class="fas fa-search"></i>
+      Predict
+    </button>
+
+    <div>
+      <img id="preview" src="" alt="" style="display: none;">
+    </div>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    let uploadedImage = null;
+
+    document.getElementById('imageUpload').addEventListener('change', function (event) {
+      const file = event.target.files[0];
+      if (file) {
+        uploadedImage = file;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const preview = document.getElementById('preview');
+          preview.src = e.target.result;
+          preview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    async function predict() {
+      if (!uploadedImage) {
+        alert("Please upload an image first!");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", uploadedImage);
+
+      const resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = '<div class="spinner"></div> Analyzing...';
+
+      try {
+        const response = await fetch("http://127.0.0.1:5000/predict", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await response.json();
+        if (data.error) {
+          resultDiv.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: #ff6b6b;"></i> Error: ${data.error}`;
+        } else {
+          resultDiv.innerHTML = 
+            `<i class="fas fa-check-circle" style="color: #51cf66; font-size: 24px;"></i><br>
+             Predicted: <span style="color:#ffeb3b">${data.class}</span><br>
+             Confidence: <span style="color:#51cf66">${(data.confidence*100).toFixed(2)}%</span>`;
+        }
+
+      } catch (err) {
+        resultDiv.innerHTML = '<i class="fas fa-times-circle" style="color: #ff6b6b;"></i> Error connecting to server.';
+        console.error(err);
+      }
+    }
+  </script>
+</body>
+</html>
